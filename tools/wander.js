@@ -12,18 +12,21 @@ if (process.argv.length > 3) {
   direction = process.argv[3];
 }
 
-var wander = WanderGoogleNgrams();
+var createWanderStream = WanderGoogleNgrams();
 var opts = {
   word: word,
   direction: direction
 };
-wander(opts, done);
+var stream = createWanderStream(opts);
 
-function done(error, path) {
-  if (error) {
-    console.log(error);
-  }
-  else {
-    console.log(path);
-  }
+stream.on('end', reportDone);
+stream.on('error', reportError);
+stream.pipe(process.stdout);
+
+function reportDone() {
+  console.log('Done!');
+}
+
+function reportError(error) {
+  console.log(error);
 }

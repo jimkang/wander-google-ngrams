@@ -15,25 +15,36 @@ Usage
 
     var WanderGoogleNgrams = require('wander-google-ngrams');
 
-    var wander = WanderGoogleNgrams();
+    var createWanderStream = WanderGoogleNgrams();
     var opts = {
       word: 'cat',
       direction: 'backward'
     };
     wander(opts, done);
 
-    function done(error, path) {
-      if (error) {
-        console.log(error);
-      }
-      else {
-        console.log(path);
-      }
+    var stream = createWanderStream(opts);
+
+    stream.on('end', reportDone);
+    stream.on('error', reportError);
+    stream.pipe(process.stdout);
+
+    function reportDone() {
+      console.log('Done!');
+    }
+
+    function reportError(error) {
+      console.log(error);
     }
 
 Output:
     
-    [ 'The', 'eyes', 'of', 'a', 'cat' ]
+    cat
+    a
+    of
+    eyes
+    The
+
+(Line breaks added for readability.)
 
 If you want it to be less random, you can specify a `pickNextGroup` function in the opts that takes a list of n-gram groups and returns one of them.
 

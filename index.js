@@ -2,6 +2,7 @@ var defaultGetNgrams = require('ngram-getter');
 var probable = require('probable');
 var _ = require('lodash');
 var callNextTick = require('call-next-tick');
+var Readable = require('stream').Readable;
 
 function WanderGoogleNgrams(createOpts) {
   var getNgrams = defaultGetNgrams;
@@ -10,7 +11,7 @@ function WanderGoogleNgrams(createOpts) {
     getNgrams = createOpts.getNgrams;
   }
 
-  function wander(opts, done) {
+  function createWanderStream(opts) {
     var word;
     var direction;
     var pickNextGroup;
@@ -21,53 +22,76 @@ function WanderGoogleNgrams(createOpts) {
       pickNextGroup = opts.pickNextGroup;
     }
 
+    var stream = Readable({
+      objectMode: true
+    });
+
     if (!pickNextGroup) {
       pickNextGroup = probable.pickFromArray;
     }
 
-    var nextGroup;
+    var nextGroup = [{word: word}];
+    var firstRead = true;
 
-    var initialNgramOpts = {
-      phrases: word
-    };
-    getNextNgram(null, [[{word: word}]]);
+    var getNewest = getLast;
+    if (direction === 'backward') {
+      getNewest = getFirst;
+    }
 
-    function getNextNgram(error, ngramsGroups) {
-      if (error) {
-        if (nextGroup) {
-          // Return the path we've wandered so far. Most likely, we just hit 
-          // too many redirects because there's no further ngrams.
-          done(null, _.pluck(nextGroup, 'word'));
-        }
-        else {
-          done(error);
-        }
+    stream._read = function readFromStream() {
+      if (firstRead) {
+        firstRead = false;
+        stream.push(word);
       }
-      else if (!ngramsGroups || ngramsGroups.length < 1) {
-        done(error, _.pluck(ngramsGroups, 'word'));
+      else {
+        getNgrams(getOptsForNgramSearch(nextGroup, direction), pushResult);
+      }
+    }
+
+    function pushResult(error, ngramsGroups) {
+      if (error || !ngramsGroups || ngramsGroups.length < 1) {
+        // Most likely, if we have a nextGroup, we just hit too many 
+        // redirects because there's no further ngrams. End the stream.
+        stream.push(null);
+
+        if (!nextGroup) {
+          stream.emit(error);
+        }
       }
       else {
         nextGroup = pickNextGroup(ngramsGroups);
-        var phrases = _.pluck(nextGroup, 'word').join(' ');
-
-        if (direction === 'forward') {
-          phrases = phrases + ' *';
-        }
-        else {
-          phrases = '* ' + phrases;
-        }
-        // console.log('phrases:', phrases);
-
-        var ngramOpts = {
-          phrases: phrases
-        };
-        
-        callNextTick(getNgrams, ngramOpts, getNextNgram);
+        stream.push(getNewest(nextGroup).word);
       }
     }
+
+    return stream;    
   }
 
-  return wander;
+  return createWanderStream;
+}
+
+function getFirst(ngramGroup) {
+  return ngramGroup[0];
+}
+
+function getLast(ngramGroup) {
+  if (ngramGroup.length > 0) {
+    return ngramGroup[ngramGroup.length - 1];
+  }
+}
+
+function getOptsForNgramSearch(nextGroup, direction) {
+  var phrases = _.pluck(nextGroup, 'word').join(' ');
+  if (direction === 'forward') {
+    phrases = phrases + ' *';
+  }
+  else {
+    phrases = '* ' + phrases;
+  }
+
+  return {
+    phrases: phrases
+  };
 }
 
 module.exports = WanderGoogleNgrams;
