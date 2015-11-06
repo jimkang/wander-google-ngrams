@@ -11,7 +11,8 @@ function createMockGetNgrams(ngramResults) {
 
   function mockGetNgrams(opts, done) {
     if (ngramCallCount < ngramResults.length) {
-      var groups = ngramResults[ngramCallCount].map(word => [{word: word}]);
+      var groups = ngramResults[ngramCallCount].split(' ')
+        .map(word => [{word: word}]);
 
       ngramCallCount += 1;
       callNextTick(done, null, groups);
@@ -32,10 +33,10 @@ var testCases = [
       pickNextGroup: mockPickNextGroup
     },
     ngramResults: [
-      ['the', 'same'],
-      ['the', 'same', 'day'],
-      ['the', 'same', 'day', 'in'],
-      ['the', 'same', 'day', 'in', 'which']
+      'the same',
+      'the same day',
+      'the same day in',
+      'the same day in which'
     ],
     expected: [
       'the',
