@@ -60,6 +60,7 @@ function WanderGoogleNgrams(createOpts) {
       }
       else {
         nextGroup = pickNextGroup(ngramsGroups);
+        // console.log('nextGroup', nextGroup);
         stream.push(getNewest(nextGroup).word);
       }
     }
@@ -81,12 +82,14 @@ function getLast(ngramGroup) {
 }
 
 function getOptsForNgramSearch(nextGroup, direction) {
-  var phrases = _.pluck(nextGroup, 'word').join(' ');
+  var phrases;
+  var words = _.pluck(nextGroup, 'word')
+
   if (direction === 'forward') {
-    phrases = phrases + ' *';
+    phrases = words.slice(0, 4).join(' ') + ' *';
   }
   else {
-    phrases = '* ' + phrases;
+    phrases = '* ' + words.slice(-4).join(' ');
   }
 
   return {

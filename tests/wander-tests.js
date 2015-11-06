@@ -10,9 +10,16 @@ function createMockGetNgrams(ngramResults) {
   var ngramCallCount = 0;
 
   function mockGetNgrams(opts, done) {
-    if (ngramCallCount < ngramResults.length) {
-      var groups = ngramResults[ngramCallCount].split(' ')
-        .map(word => [{word: word}]);
+    console.log(opts.phrases.split(' ').length);
+    console.log(opts.phrases.split(' '));
+
+    if (opts.phrases.split(' ').length > 5) {
+      callNextTick(done);
+    }
+    else if (ngramCallCount < ngramResults.length) {
+      var groups = [
+        ngramResults[ngramCallCount].split(' ').map(word => ({word: word}))
+      ];
 
       ngramCallCount += 1;
       callNextTick(done, null, groups);
@@ -46,12 +53,28 @@ var testCases = [
       'which'
     ]
   },
-  // {
-  //   opts: {
-  //   },
-  //   expected: {
-  //   }
-  // }
+  {
+    opts: {
+      word: 'the',
+      direction: 'forward',
+      pickNextGroup: mockPickNextGroup
+    },
+    ngramResults: [
+      'the same',
+      'the same day',
+      'the same day in',
+      'the same day in which',
+      'the same day in which the',
+    ],
+    expected: [
+      'the',
+      'same',
+      'day',
+      'in',
+      'which',
+      'the'
+    ]
+  }
 ];
 
 testCases.forEach(runTest);
