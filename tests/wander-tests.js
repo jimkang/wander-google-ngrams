@@ -10,8 +10,8 @@ function createMockGetNgrams(ngramResults) {
   var ngramCallCount = 0;
 
   function mockGetNgrams(opts, done) {
-    console.log(opts.phrases.split(' ').length);
-    console.log(opts.phrases.split(' '));
+    // console.log(opts.phrases.split(' ').length);
+    // console.log(opts.phrases.split(' '));
 
     if (opts.phrases.split(' ').length > 5) {
       callNextTick(done);
@@ -73,6 +73,20 @@ var testCases = [
       'in',
       'which',
       'the'
+    ]
+  },
+  {
+    opts: {
+      word: 'world',
+      direction: 'forward',
+      pickNextGroup: mockPickNextGroup
+    },
+    ngramResults: [
+      'world &#39;s',
+    ],
+    expected: [
+      'world',
+      '\'s',
     ]
   }
 ];

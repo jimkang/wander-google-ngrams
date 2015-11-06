@@ -61,7 +61,7 @@ function WanderGoogleNgrams(createOpts) {
       else {
         nextGroup = pickNextGroup(ngramsGroups);
         // console.log('nextGroup', nextGroup);
-        stream.push(getNewest(nextGroup).word);
+        stream.push(replaceHTMLEntities(getNewest(nextGroup).word));
       }
     }
 
@@ -83,7 +83,7 @@ function getLast(ngramGroup) {
 
 function getOptsForNgramSearch(nextGroup, direction) {
   var phrases;
-  var words = _.pluck(nextGroup, 'word')
+  var words = _.pluck(nextGroup, 'word');
 
   if (direction === 'forward') {
     phrases = words.slice(0, 4).join(' ') + ' *';
@@ -95,6 +95,10 @@ function getOptsForNgramSearch(nextGroup, direction) {
   return {
     phrases: phrases
   };
+}
+
+function replaceHTMLEntities(word) {
+  return word.replace('&#39;', '\'');
 }
 
 module.exports = WanderGoogleNgrams;
