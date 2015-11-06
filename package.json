@@ -18,12 +18,12 @@
   },
   "homepage": "https://github.com/jimkang/wander-google-ngrams",
   "devDependencies": {
-    "tape": "^3.0.3"
+    "tape": "^4.2.2"
   },
   "dependencies": {
     "call-next-tick": "^1.1.2",
     "lodash": "^3.10.1",
-    "ngram-getter": "^1.0.4",
+    "ngram-getter": "^1.0.5",
     "probable": "^1.7.0"
   }
 }
