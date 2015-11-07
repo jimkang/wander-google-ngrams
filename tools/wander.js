@@ -15,7 +15,9 @@ if (process.argv.length > 3) {
 var createWanderStream = WanderGoogleNgrams();
 var opts = {
   word: word,
-  direction: direction
+  direction: direction,
+  repeatLimit: 1,
+  tryReducingNgramSizeAtDeadEnds: true
 };
 var stream = createWanderStream(opts);
 

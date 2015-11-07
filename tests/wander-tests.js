@@ -105,6 +105,32 @@ var testCases = [
       'dad',
       'mug'
     ]
+  },
+  {
+    opts: {
+      word: 'world',
+      direction: 'forward',
+      repeatLimit: 1,
+      tryReducingNgramSizeAtDeadEnds: true
+    },
+    ngramResults: [
+      'world &#39;s',
+      'world &#39;s greatest',
+      'world &#39;s greatest dad',
+      'world &#39;s greatest dad mug',
+      'world &#39;s greatest dad mug greatest',
+      'dad mug greatest dad new',
+      'world &#39;s greatest dad mug greatest dad mug',
+      'world &#39;s greatest dad mug greatest dad mug greatest',
+    ],
+    expected: [
+      'world',
+      '\'s',
+      'greatest',
+      'dad',
+      'mug',
+      'new'
+    ]
   }
 ];
 

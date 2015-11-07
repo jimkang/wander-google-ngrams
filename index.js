@@ -17,6 +17,8 @@ function WanderGoogleNgrams(createOpts) {
     var direction;
     var pickNextGroup;
     var repeatLimit;
+    var tryReducingNgramSizeAtDeadEnds;
+
     var wordCounter = WordCounter();
 
     if (opts) {
@@ -24,6 +26,7 @@ function WanderGoogleNgrams(createOpts) {
       direction = opts.direction;
       pickNextGroup = opts.pickNextGroup;
       repeatLimit = opts.repeatLimit;
+      tryReducingNgramSizeAtDeadEnds = opts.tryReducingNgramSizeAtDeadEnds;
     }
 
     var stream = Readable({
@@ -64,13 +67,33 @@ function WanderGoogleNgrams(createOpts) {
       }
       else {
         var newWord = null;
+        var prevGroup;
+        if (nextGroup) {
+          prevGroup = nextGroup.slice();
+        }
+        // console.log('\nprevGroup', prevGroup);
         nextGroup = pickNextGroup(ngramsGroups);
+        // console.log('\nnextGroup', nextGroup);
+
         if (nextGroup) {
           newWord = getNewest(nextGroup).word;
           wordCounter.countWord(newWord);
           newWord = replaceHTMLEntities(newWord);
         }
-        stream.push(newWord);
+
+        if (!newWord && tryReducingNgramSizeAtDeadEnds && prevGroup) {
+          debugger;
+          // console.log('\nBacking up\n')
+          console.log('\nBacking up to:', removeOldestFromGroup(prevGroup));
+          callNextTick(
+            getNgrams,
+            getOptsForNgramSearch(removeOldestFromGroup(prevGroup), direction),
+            pushResult
+          );
+        }
+        else {
+          stream.push(newWord);
+        }
       }
     }
 
@@ -81,16 +104,28 @@ function WanderGoogleNgrams(createOpts) {
 
     function defaultPickNextGroup(groups) {
       var filteredGroups = groups;
+      // console.log('raw:', groups);
 
       if (!isNaN(repeatLimit)) {
         filteredGroups = groups.filter(newestWordOfGroupIsNotAtLimit);
+        // console.log('filtered:', filteredGroups);
       }
+
       return probable.pickFromArray(filteredGroups);
     }
 
     function newestWordOfGroupIsNotAtLimit(group) {
       var newestWord = getNewestWordInGroup(group);
       return wordCounter.getCountForWord(newestWord) < repeatLimit;
+    }
+
+    function removeOldestFromGroup(group) {
+      if (direction === 'forward') {
+        return group.slice(1);
+      }
+      else {
+        return group.slice(-1);
+      }
     }
 
     return stream;    
