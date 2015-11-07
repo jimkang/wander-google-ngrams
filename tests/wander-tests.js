@@ -2,10 +2,6 @@ var test = require('tape');
 var WanderGoogleNgrams = require('../index');
 var callNextTick = require('call-next-tick');
 
-function mockPickNextGroup(groups) {
-  return groups[groups.length - 1];
-}
-
 function createMockGetNgrams(ngramResults) {
   var ngramCallCount = 0;
 
@@ -36,8 +32,7 @@ var testCases = [
   {
     opts: {
       word: 'the',
-      direction: 'forward',
-      pickNextGroup: mockPickNextGroup
+      direction: 'forward'
     },
     ngramResults: [
       'the same',
@@ -56,8 +51,7 @@ var testCases = [
   {
     opts: {
       word: 'the',
-      direction: 'forward',
-      pickNextGroup: mockPickNextGroup
+      direction: 'forward'
     },
     ngramResults: [
       'the same',
@@ -78,8 +72,7 @@ var testCases = [
   {
     opts: {
       word: 'world',
-      direction: 'forward',
-      pickNextGroup: mockPickNextGroup
+      direction: 'forward'
     },
     ngramResults: [
       'world &#39;s',
@@ -87,6 +80,30 @@ var testCases = [
     expected: [
       'world',
       '\'s',
+    ]
+  },
+  {
+    opts: {
+      word: 'world',
+      direction: 'forward',
+      repeatLimit: 1
+    },
+    ngramResults: [
+      'world &#39;s',
+      'world &#39;s greatest',
+      'world &#39;s greatest dad',
+      'world &#39;s greatest dad mug',
+      'world &#39;s greatest dad mug greatest',
+      'world &#39;s greatest dad mug greatest dad',
+      'world &#39;s greatest dad mug greatest dad mug',
+      'world &#39;s greatest dad mug greatest dad mug greatest',
+    ],
+    expected: [
+      'world',
+      '\'s',
+      'greatest',
+      'dad',
+      'mug'
     ]
   }
 ];

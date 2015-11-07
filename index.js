@@ -3,6 +3,7 @@ var probable = require('probable');
 var _ = require('lodash');
 var callNextTick = require('call-next-tick');
 var Readable = require('stream').Readable;
+var WordCounter = require('./word-counter');
 
 function WanderGoogleNgrams(createOpts) {
   var getNgrams = defaultGetNgrams;
@@ -15,11 +16,14 @@ function WanderGoogleNgrams(createOpts) {
     var word;
     var direction;
     var pickNextGroup;
+    var repeatLimit;
+    var wordCounter = WordCounter();
 
     if (opts) {
       word = opts.word;
       direction = opts.direction;
       pickNextGroup = opts.pickNextGroup;
+      repeatLimit = opts.repeatLimit;
     }
 
     var stream = Readable({
@@ -27,7 +31,7 @@ function WanderGoogleNgrams(createOpts) {
     });
 
     if (!pickNextGroup) {
-      pickNextGroup = probable.pickFromArray;
+      pickNextGroup = defaultPickNextGroup;
     }
 
     var nextGroup = [{word: word}];
@@ -59,10 +63,34 @@ function WanderGoogleNgrams(createOpts) {
         }
       }
       else {
+        var newWord = null;
         nextGroup = pickNextGroup(ngramsGroups);
-        // console.log('nextGroup', nextGroup);
-        stream.push(replaceHTMLEntities(getNewest(nextGroup).word));
+        if (nextGroup) {
+          newWord = getNewest(nextGroup).word;
+          wordCounter.countWord(newWord);
+          newWord = replaceHTMLEntities(newWord);
+        }
+        stream.push(newWord);
       }
+    }
+
+    function getNewestWordInGroup(group) {
+      var newest = getNewest(group);
+      return newest.word;
+    }
+
+    function defaultPickNextGroup(groups) {
+      var filteredGroups = groups;
+
+      if (!isNaN(repeatLimit)) {
+        filteredGroups = groups.filter(newestWordOfGroupIsNotAtLimit);
+      }
+      return probable.pickFromArray(filteredGroups);
+    }
+
+    function newestWordOfGroupIsNotAtLimit(group) {
+      var newestWord = getNewestWordInGroup(group);
+      return wordCounter.getCountForWord(newestWord) < repeatLimit;
     }
 
     return stream;    
