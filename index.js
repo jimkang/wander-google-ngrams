@@ -4,6 +4,8 @@ var _ = require('lodash');
 var callNextTick = require('call-next-tick');
 var Readable = require('stream').Readable;
 var WordCounter = require('./word-counter');
+var SentenceGuide = require('./sentence-guide');
+var queue = require('queue-async');
 
 function WanderGoogleNgrams(createOpts) {
   var getNgrams = defaultGetNgrams;
@@ -18,8 +20,16 @@ function WanderGoogleNgrams(createOpts) {
     var pickNextGroup;
     var repeatLimit;
     var tryReducingNgramSizeAtDeadEnds;
+    var characterLimit;
+    var shootForASentence;
+
+    var prevSpecifier;
+    var mostRecentWords;
+    var consecutiveDeadEndRetries = 0;
+    var maxConsecutiveDeadEndRetries = 3;
 
     var wordCounter = WordCounter();
+    var sentenceGuide;
 
     if (opts) {
       word = opts.word;
@@ -27,6 +37,12 @@ function WanderGoogleNgrams(createOpts) {
       pickNextGroup = opts.pickNextGroup;
       repeatLimit = opts.repeatLimit;
       tryReducingNgramSizeAtDeadEnds = opts.tryReducingNgramSizeAtDeadEnds;
+      characterLimit = opts.characterLimit;
+      shootForASentence = opts.shootForASentence;
+    }
+
+    if (shootForASentence) {
+      sentenceGuide = SentenceGuide();
     }
 
     var stream = Readable({
@@ -48,52 +64,90 @@ function WanderGoogleNgrams(createOpts) {
     stream._read = function readFromStream() {
       if (firstRead) {
         firstRead = false;
-        stream.push(word);
+        pushWordToStream(word);
       }
       else {
-        getNgrams(getOptsForNgramSearch(nextGroup, direction), pushResult);
+        getNgrams(
+          {
+            phrases: getPhrasesForNgramSearch(_.pluck(nextGroup, 'word'))
+          },
+          evaluateResult
+        );
       }
     }
 
-    function pushResult(error, ngramsGroups) {
+    function evaluateResult(error, ngramsGroups) {
       if (error || !ngramsGroups || ngramsGroups.length < 1) {
-        // Most likely, if we have a nextGroup, we just hit too many 
-        // redirects because there's no further ngrams. End the stream.
-        stream.push(null);
-
         if (!nextGroup) {
           stream.emit(error);
+        }
+        else {
+          // Most likely, if we have a nextGroup, we just hit too many 
+          // redirects because there's no further ngrams. End the stream.
+          decideNextStep();
         }
       }
       else {
         var newWord = null;
-        var prevGroup;
-        if (nextGroup) {
-          prevGroup = nextGroup.slice();
-        }
-        // console.log('\nprevGroup', prevGroup);
+        var cleanedWord;
         nextGroup = pickNextGroup(ngramsGroups);
-        // console.log('\nnextGroup', nextGroup);
 
         if (nextGroup) {
-          newWord = getNewest(nextGroup).word;
+          mostRecentWords = _.pluck(nextGroup, 'word');
+          newWord = getNewest(mostRecentWords);
           wordCounter.countWord(newWord);
-          newWord = replaceHTMLEntities(newWord);
+          cleanedWord = replaceHTMLEntities(newWord);
         }
 
-        if (!newWord && tryReducingNgramSizeAtDeadEnds && prevGroup) {
-          debugger;
-          // console.log('\nBacking up\n')
-          console.log('\nBacking up to:', removeOldestFromGroup(prevGroup));
+        decideNextStep();
+      }
+
+      function decideNextStep() {
+        if (cleanedWord) {
+          consecutiveDeadEndRetries = 0;
+          pushWordToStream(cleanedWord);
+        }
+        else if (prevSpecifier !== '*' && mostRecentWords) {
+          console.log('Going less specific.');
+          // Try going less specific.
           callNextTick(
             getNgrams,
-            getOptsForNgramSearch(removeOldestFromGroup(prevGroup), direction),
-            pushResult
+            {
+              phrases: getPhrasesForNgramSearch(mostRecentWords, '*')
+            },
+            evaluateResult
+          );
+        }
+        else if (tryReducingNgramSizeAtDeadEnds && mostRecentWords &&
+          consecutiveDeadEndRetries < maxConsecutiveDeadEndRetries) {
+          consecutiveDeadEndRetries += 1;
+          console.log('consecutiveDeadEndRetries', consecutiveDeadEndRetries);
+          mostRecentWords = removeOldestFromGroup(mostRecentWords);
+          callNextTick(
+            getNgrams,
+            {
+              phrases: getPhrasesForNgramSearch(mostRecentWords, '*')
+            },
+            evaluateResult
           );
         }
         else {
-          stream.push(newWord);
+          // End stream.
+          stream.push(null);
         }
+      }
+    }
+
+    function pushWordToStream(word) {
+      if (sentenceGuide) {
+        sentenceGuide.noteWordWasPushed(word, doPush);
+      }
+      else {
+        doPush();
+      }
+
+      function doPush() {
+        stream.push(word);
       }
     }
 
@@ -104,11 +158,9 @@ function WanderGoogleNgrams(createOpts) {
 
     function defaultPickNextGroup(groups) {
       var filteredGroups = groups;
-      // console.log('raw:', groups);
 
       if (!isNaN(repeatLimit)) {
         filteredGroups = groups.filter(newestWordOfGroupIsNotAtLimit);
-        // console.log('filtered:', filteredGroups);
       }
 
       return probable.pickFromArray(filteredGroups);
@@ -128,7 +180,31 @@ function WanderGoogleNgrams(createOpts) {
       }
     }
 
-    return stream;    
+    function getPhrasesForNgramSearch(words, specifier) {
+      var phrases;
+      // var words = _.pluck(nextGroup, 'word');
+      if (specifier) {
+        prevSpecifier = specifier;
+      }
+      else if (shootForASentence) {
+        prevSpecifier = sentenceGuide.getNextWordSpecifier();
+      }
+      else {
+        prevSpecifier = '*';
+      }
+
+      if (direction === 'forward') {
+        phrases = words.slice(-4).join(' ') + ' ' + prevSpecifier;
+      }
+      else {
+        phrases = prevSpecifier + ' ' + words.slice(0, 4).join(' ');
+      }
+
+      // console.log('WORDS:', words, 'PHRASES:', phrases);
+      return phrases;
+    }
+
+    return stream;
   }
 
   return createWanderStream;
@@ -142,22 +218,6 @@ function getLast(ngramGroup) {
   if (ngramGroup.length > 0) {
     return ngramGroup[ngramGroup.length - 1];
   }
-}
-
-function getOptsForNgramSearch(nextGroup, direction) {
-  var phrases;
-  var words = _.pluck(nextGroup, 'word');
-
-  if (direction === 'forward') {
-    phrases = words.slice(0, 4).join(' ') + ' *';
-  }
-  else {
-    phrases = '* ' + words.slice(-4).join(' ');
-  }
-
-  return {
-    phrases: phrases
-  };
 }
 
 function replaceHTMLEntities(word) {

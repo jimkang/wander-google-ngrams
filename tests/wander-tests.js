@@ -131,7 +131,37 @@ var testCases = [
       'mug',
       'new'
     ]
-  }
+  },
+  // TODO: This test should be stricter.
+  // {
+  //   opts: {
+  //     word: 'world',
+  //     direction: 'forward',
+  //     repeatLimit: 1,
+  //     tryReducingNgramSizeAtDeadEnds: true,
+  //     shootForASentence: true
+  //   },
+  //   ngramResults: [
+  //     'world &#39;s',
+  //     'world &#39;s greatest',
+  //     'world &#39;s greatest dad',
+  //     'world &#39;s greatest dad mug',
+  //     'world &#39;s greatest dad mug greatest',
+  //     'dad mug greatest dad is',
+  //     'mug greatest dad is cool',
+  //     'greatest dad is cool indeed'
+  //   ],
+  //   expected: [
+  //     'world',
+  //     '\'s',
+  //     'greatest',
+  //     'dad',
+  //     'mug',
+  //     'is',
+  //     'cool',
+  //     'indeed'
+  //   ]
+  // }
 ];
 
 testCases.forEach(runTest);

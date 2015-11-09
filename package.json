@@ -24,6 +24,8 @@
     "call-next-tick": "^1.1.2",
     "lodash": "^3.10.1",
     "ngram-getter": "^1.0.6",
-    "probable": "^1.7.0"
+    "probable": "^1.7.0",
+    "queue-async": "^1.0.7",
+    "wordpos": "^0.1.15"
   }
 }

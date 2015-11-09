@@ -17,13 +17,15 @@ var opts = {
   word: word,
   direction: direction,
   repeatLimit: 1,
-  tryReducingNgramSizeAtDeadEnds: true
+  tryReducingNgramSizeAtDeadEnds: true,
+  shootForASentence: true
 };
 var stream = createWanderStream(opts);
 
 stream.on('end', reportDone);
 stream.on('error', reportError);
-stream.pipe(process.stdout);
+// stream.pipe(process.stdout);
+stream.on('data', reportWord);
 
 function reportDone() {
   console.log('Done!');
@@ -31,4 +33,8 @@ function reportDone() {
 
 function reportError(error) {
   console.log(error);
+}
+
+function reportWord(word) {
+  console.log('WORD:', word);
 }
