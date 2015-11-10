@@ -22,6 +22,7 @@ function WanderGoogleNgrams(createOpts) {
     var tryReducingNgramSizeAtDeadEnds;
     var characterLimit;
     var shootForASentence;
+    var maxWordCount;
 
     var prevSpecifier;
     var mostRecentWords;
@@ -39,6 +40,7 @@ function WanderGoogleNgrams(createOpts) {
       tryReducingNgramSizeAtDeadEnds = opts.tryReducingNgramSizeAtDeadEnds;
       characterLimit = opts.characterLimit;
       shootForASentence = opts.shootForASentence;
+      maxWordCount = opts.maxWordCount;
     }
 
     if (shootForASentence) {
@@ -62,7 +64,10 @@ function WanderGoogleNgrams(createOpts) {
     }
 
     stream._read = function readFromStream() {
-      if (firstRead) {
+      if (maxWordCount && wordCounter.getTotalCount() >= maxWordCount) {
+        stream.push(null);
+      }
+      else if (firstRead) {
         firstRead = false;
         pushWordToStream(word);
       }
@@ -74,7 +79,7 @@ function WanderGoogleNgrams(createOpts) {
           evaluateResult
         );
       }
-    }
+    };
 
     function evaluateResult(error, ngramsGroups) {
       if (error || !ngramsGroups || ngramsGroups.length < 1) {
@@ -95,7 +100,6 @@ function WanderGoogleNgrams(createOpts) {
         if (nextGroup) {
           mostRecentWords = _.pluck(nextGroup, 'word');
           newWord = getNewest(mostRecentWords);
-          wordCounter.countWord(newWord);
           cleanedWord = replaceHTMLEntities(newWord);
         }
 
@@ -147,6 +151,7 @@ function WanderGoogleNgrams(createOpts) {
       }
 
       function doPush() {
+        wordCounter.countWord(word);
         stream.push(word);
       }
     }
