@@ -72,12 +72,18 @@ function WanderGoogleNgrams(createOpts) {
         pushWordToStream(word);
       }
       else {
-        getNgrams(
-          {
-            phrases: getPhrasesForNgramSearch(_.pluck(nextGroup, 'word'))
-          },
-          evaluateResult
-        );
+        var phrases = getPhrasesForNgramSearch(_.pluck(nextGroup, 'word'));
+        if (phrases) {
+          getNgrams(
+            {
+              phrases: phrases
+            },
+            evaluateResult
+          );
+        }
+        else {
+          stream.push(null);
+        }
       }
     };
 
@@ -187,7 +193,7 @@ function WanderGoogleNgrams(createOpts) {
 
     function getPhrasesForNgramSearch(words, nextSpecifier) {
       var phrases;
-      // var words = _.pluck(nextGroup, 'word');
+
       if (nextSpecifier) {
         specifier = nextSpecifier;
       }
@@ -198,14 +204,15 @@ function WanderGoogleNgrams(createOpts) {
         specifier = '*';
       }
 
-      if (direction === 'forward') {
-        phrases = words.slice(-4).join(' ') + ' ' + specifier;
-      }
-      else {
-        phrases = specifier + ' ' + words.slice(0, 4).join(' ');
+      if (specifier !== 'END') {
+        if (direction === 'forward') {
+          phrases = words.slice(-4).join(' ') + ' ' + specifier;
+        }
+        else {
+          phrases = specifier + ' ' + words.slice(0, 4).join(' ');
+        }
       }
 
-      // console.log('WORDS:', words, 'PHRASES:', phrases);
       return phrases;
     }
 

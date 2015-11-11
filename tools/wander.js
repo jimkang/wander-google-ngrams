@@ -19,7 +19,7 @@ var opts = {
   repeatLimit: 1,
   tryReducingNgramSizeAtDeadEnds: true,
   shootForASentence: true,
-  maxWordCount: 10
+  maxWordCount: 20
 };
 var stream = createWanderStream(opts);
 

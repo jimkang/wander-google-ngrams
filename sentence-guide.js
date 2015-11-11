@@ -29,18 +29,20 @@ function SentenceGuide(opts) {
       else {
         var exclusivePOS = posTracker.getExclusivePOSFromDict(posDict);
 
-        if (pushedVerb &&
+        if (pushedVerb && !pushedObject &&
           (posTracker.dictContainsPOS(posDict, 'nouns') ||
           posTracker.dictContainsPOS(posDict, 'adjectives'))) {
 
           pushedObject = true;
           console.log('pushedObject');
         }
-        else if (exclusivePOS === 'verbs') {
+        else if (!pushedVerb && exclusivePOS === 'verbs') {
           pushedVerb = true;
           console.log('pushedVerb');
         }
-        else if (pushedVerb && posTracker.dictContainsPOS(posDict, 'nouns')) {
+        else if (!pushedSubject && !pushedVerb &&
+          posTracker.dictContainsPOS(posDict, 'nouns')) {
+
           pushedSubject = true;
           console.log('pushedSubject');
         }
@@ -58,7 +60,7 @@ function SentenceGuide(opts) {
     }
 
     if (pushedObject) {
-      return '*';
+      return 'END';
     }
     if (pushedVerb) {
       // Look for object.
