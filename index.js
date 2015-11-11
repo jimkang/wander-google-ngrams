@@ -24,7 +24,7 @@ function WanderGoogleNgrams(createOpts) {
     var shootForASentence;
     var maxWordCount;
 
-    var prevSpecifier;
+    var specifier;
     var mostRecentWords;
     var consecutiveDeadEndRetries = 0;
     var maxConsecutiveDeadEndRetries = 3;
@@ -111,7 +111,7 @@ function WanderGoogleNgrams(createOpts) {
           consecutiveDeadEndRetries = 0;
           pushWordToStream(cleanedWord);
         }
-        else if (prevSpecifier !== '*' && mostRecentWords) {
+        else if (specifier !== '*' && mostRecentWords) {
           console.log('Going less specific.');
           // Try going less specific.
           callNextTick(
@@ -185,24 +185,24 @@ function WanderGoogleNgrams(createOpts) {
       }
     }
 
-    function getPhrasesForNgramSearch(words, specifier) {
+    function getPhrasesForNgramSearch(words, nextSpecifier) {
       var phrases;
       // var words = _.pluck(nextGroup, 'word');
-      if (specifier) {
-        prevSpecifier = specifier;
+      if (nextSpecifier) {
+        specifier = nextSpecifier;
       }
       else if (shootForASentence) {
-        prevSpecifier = sentenceGuide.getNextWordSpecifier();
+        specifier = sentenceGuide.getNextWordSpecifier();
       }
       else {
-        prevSpecifier = '*';
+        specifier = '*';
       }
 
       if (direction === 'forward') {
-        phrases = words.slice(-4).join(' ') + ' ' + prevSpecifier;
+        phrases = words.slice(-4).join(' ') + ' ' + specifier;
       }
       else {
-        phrases = prevSpecifier + ' ' + words.slice(0, 4).join(' ');
+        phrases = specifier + ' ' + words.slice(0, 4).join(' ');
       }
 
       // console.log('WORDS:', words, 'PHRASES:', phrases);
