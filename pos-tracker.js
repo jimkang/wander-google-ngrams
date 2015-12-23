@@ -1,6 +1,6 @@
-var WordPOS = require('wordpos');
-var wordpos = new WordPOS();
 var callNextTick = require('call-next-tick');
+var createWordnok = require('wordnok').createWordnok;
+var _ = require('lodash');
 
 var verbsThatWordPOSSomehowMisses = [
   'is',
@@ -8,7 +8,17 @@ var verbsThatWordPOSSomehowMisses = [
   'went'
 ];
 
-function POSTracker() {
+function POSTracker(opts) {
+  var wordnikAPIKey;
+
+  if (opts) {
+    wordnikAPIKey = opts.wordnikAPIKey;
+  }
+
+  var wordnok = createWordnok({
+    apiKey: wordnikAPIKey
+  });
+
   // var posForWords = {};
   var observedPOS = {};
 
@@ -17,52 +27,35 @@ function POSTracker() {
       callNextTick(done, null, {'verbs': [word]});
     }
     else {
-      wordpos.getPOS(word, saveWordPOS);
+      // wordpos.getPOS(word, saveWordPOS);
+      wordnok.getPartsOfSpeech(word, saveWordPOS);
     }
   
-    function saveWordPOS(partsOfSpeech) {
+    function saveWordPOS(error, partsOfSpeech) {
+      if (error) {
+        done(error);
+        return;
+      }
       // posForWords[word] = partsOfSpeech;
       // console.log(word, 'pos', partsOfSpeech);
+      partsOfSpeech = _.uniq(partsOfSpeech);
 
       // We only want records for words that are strictly one part of speech.
-      var exclusivePOS = getExclusivePOSFromDict(partsOfSpeech);
-      if (exclusivePOS) {
-        observedPOS[exclusivePOS] = true;
-      }
+      console.log(partsOfSpeech);
+      // var exclusivePOS = getExclusivePOSFromDict(partsOfSpeech);
+      // if (exclusivePOS) {
+      partsOfSpeech.forEach(markObserved);
       done(null, partsOfSpeech);
     }
   }
 
-  function getTrackedPOS() {
-    return Object.keys(observedPOS);
+  function markObserved(partOfSpeech) {
+    observedPOS[partOfSpeech] = true;
   }
 
   return {
-    notePOS: notePOS,
-    getTrackedPOS: getTrackedPOS,
-    getExclusivePOSFromDict: getExclusivePOSFromDict,
-    dictContainsPOS: dictContainsPOS
+    notePOS: notePOS
   };
-}
-
-function getExclusivePOSFromDict(posDict) {
-  var exclusivePOS;
-  for (var pos in posDict) {
-    if (posDict[pos].length > 0) {
-      if (exclusivePOS) {
-        exclusivePOS = undefined;
-        break;
-      }
-      else {
-        exclusivePOS = pos;
-      }
-    }
-  }
-  return exclusivePOS;
-}
-
-function dictContainsPOS(posDict, pos) {
-  return (pos in posDict && posDict[pos].length > 0);
 }
 
 module.exports = POSTracker;

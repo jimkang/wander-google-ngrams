@@ -1,6 +1,7 @@
 var test = require('tape');
 var WanderGoogleNgrams = require('../index');
 var callNextTick = require('call-next-tick');
+var config = require('../config');
 
 function createMockGetNgrams(ngramResults) {
   var ngramCallCount = 0;
@@ -171,7 +172,8 @@ function runTest(testCase) {
     t.plan(testCase.expected.length + 1);
 
     var createWanderStream = WanderGoogleNgrams({
-      getNgrams: createMockGetNgrams(testCase.ngramResults)
+      getNgrams: createMockGetNgrams(testCase.ngramResults),
+      wordnikAPIKey: config.wordnikAPIKey
     });
 
     var stream = createWanderStream(testCase.opts);

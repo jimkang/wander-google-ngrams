@@ -1,17 +1,67 @@
 var POSTracker = require('./pos-tracker');
+var _ = require('lodash');
+
+var forwardStages = [
+  {
+    name: 'start',
+    needToProceed: ['noun', 'pronoun'],
+    lookFor: '*_NOUN'
+  },
+  {
+    name: 'pushedSubject',
+    needToProceed: ['verb'],
+    lookFor: '*_VERB'
+  },
+  {
+    name: 'pushedVerb',
+    needToProceed: ['noun', 'pronoun', 'adjective'],
+    lookFor: '*_NOUN'
+  },
+  {
+    name: 'done' // 'pushedObject'
+  }
+];
+
+var backwardStages = [
+  {
+    name: 'start',
+    needToProceed: ['noun', 'pronoun', 'adjective'],
+    lookFor: '*_NOUN'
+  },
+  {
+    name: 'pushedObject',
+    needToProceed: ['verb'],
+    lookFor: '*_VERB'
+  },
+  {
+    name: 'pushedVerb',
+    needToProceed: ['noun', 'pronoun'],
+    lookFor: '*_NOUN'
+  },
+  {
+    name: 'done' // 'pushedSubject'
+  }
+];
 
 function SentenceGuide(opts) {
-  var posTracker = POSTracker();
+  var posTracker = POSTracker({
+    wordnikAPIKey: opts.wordnikAPIKey
+  });
+  var direction;
 
   if (opts) {
     // posTracker = opts.posTracker;
+    direction = opts.direction;
   }
 
-  var firstSpecifier = true;
+  var stages = forwardStages;
+  if (direction === 'backward') {
+    stages = backwardStages;
+  }
 
-  var whenToLookForASubject = 1;
-  var whenToLookForAVerb = 4;
-  var whenToLookForAnObject = 6;
+  var stageIndex = 0;
+
+  var firstSpecifier = true;
 
   var pushedSubject = false;
   var pushedVerb = false;
@@ -22,31 +72,16 @@ function SentenceGuide(opts) {
     pushCount += 1;
     posTracker.notePOS(word, updateState);
 
-    function updateState(error, posDict) {
+    function updateState(error, partsOfSpeech) {
       if (error) {
         done(error);
       }
       else {
-        var exclusivePOS = posTracker.getExclusivePOSFromDict(posDict);
-
-        if (pushedVerb && !pushedObject &&
-          (posTracker.dictContainsPOS(posDict, 'nouns') ||
-          posTracker.dictContainsPOS(posDict, 'adjectives'))) {
-
-          pushedObject = true;
-          console.log('pushedObject');
+        var stage = stages[stageIndex];
+        if (_.intersection(stage.needToProceed, partsOfSpeech).length > 0) {
+          stageIndex += 1;
+          console.log('New stage:', stages[stageIndex].name);
         }
-        else if (!pushedVerb && exclusivePOS === 'verbs') {
-          pushedVerb = true;
-          console.log('pushedVerb');
-        }
-        else if (!pushedSubject && !pushedVerb &&
-          posTracker.dictContainsPOS(posDict, 'nouns')) {
-
-          pushedSubject = true;
-          console.log('pushedSubject');
-        }
-
         done();
       }
     }
@@ -59,25 +94,25 @@ function SentenceGuide(opts) {
       return '*';
     }
 
-    if (pushedObject) {
+    if (stages[stageIndex].name === 'done') {
       return 'END';
     }
-    if (pushedVerb) {
-      // Look for object.
-      return '*_NOUN';
-    }
-    if (pushedSubject) {
-      // Look for verb.
-      return '*_VERB';
-    }
-    // Look for subject.
-    return '*_NOUN';
+    return stages[stageIndex].lookFor;
+  }
+
+  function reset() {
+    stageIndex = 0;
   }
 
   return {
     noteWordWasPushed: noteWordWasPushed,
-    getNextWordSpecifier: getNextWordSpecifier
+    getNextWordSpecifier: getNextWordSpecifier,
+    reset: reset
   };
+}
+
+function containsPOS(partsOfSpeech, pos) {
+  return partsOfSpeech.indexOf(pos) !== -1;
 }
 
 module.exports = SentenceGuide;

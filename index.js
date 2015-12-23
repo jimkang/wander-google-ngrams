@@ -44,7 +44,10 @@ function WanderGoogleNgrams(createOpts) {
     }
 
     if (shootForASentence) {
-      sentenceGuide = SentenceGuide();
+      sentenceGuide = SentenceGuide({
+        wordnikAPIKey: createOpts.wordnikAPIKey,
+        direction: opts.direction
+      });
     }
 
     var stream = Readable({
@@ -120,6 +123,7 @@ function WanderGoogleNgrams(createOpts) {
         else if (specifier !== '*' && mostRecentWords) {
           console.log('Going less specific.');
           // Try going less specific.
+          sentenceGuide.reset();
           callNextTick(
             getNgrams,
             {

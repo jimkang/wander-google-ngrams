@@ -1,4 +1,5 @@
 var WanderGoogleNgrams = require('../index');
+var config = require('../config');
 
 if (process.argv.length < 3) {
   console.log('Usage: node tools/wander.js <word> <forward|backward>');
@@ -12,7 +13,10 @@ if (process.argv.length > 3) {
   direction = process.argv[3];
 }
 
-var createWanderStream = WanderGoogleNgrams();
+var createWanderStream = WanderGoogleNgrams({
+  wordnikAPIKey: config.wordnikAPIKey
+});
+
 var opts = {
   word: word,
   direction: direction,

@@ -15,7 +15,9 @@ Usage
 
     var WanderGoogleNgrams = require('wander-google-ngrams');
 
-    var createWanderStream = WanderGoogleNgrams();
+    var createWanderStream = WanderGoogleNgrams({
+      wordnikAPIKey: '<your Wordnik API key>'
+    });
     var opts = {
       word: 'cat',
       direction: 'backward'
@@ -51,6 +53,19 @@ If you want it to be less random, you can specify a `pickNextGroup` function in 
 You can also try running it with:
 
     node tools/wander.js <word> <forward|backward>
+
+Tests
+-----
+
+Create a config.js file in the project root that looks like this:
+
+    module.exports = {
+      wordnikAPIKey: '<your Wordnik API key>'
+    };
+
+Then run:
+
+    make test
 
 License
 -------

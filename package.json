@@ -26,6 +26,6 @@
     "ngram-getter": "^1.0.6",
     "probable": "^1.7.0",
     "queue-async": "^1.0.7",
-    "wordpos": "^0.1.15"
+    "wordnok": "jimkang/wordnok#no-cache"
   }
 }
