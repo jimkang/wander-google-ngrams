@@ -17,6 +17,13 @@ function POSTracker(opts) {
   var observedPOS = {};
 
   function notePOS(word, done) {
+    if (word == 'a') {
+      // For some reason, Wordnik calls 'a' a noun.
+      markObserved('indefinite-article');
+      callNextTick(done, null, ['indefinite-article']);
+      return;
+    }
+
     wordnok.getPartsOfSpeech(word, saveWordPOS);
   
     function saveWordPOS(error, partsOfSpeech) {
@@ -29,7 +36,7 @@ function POSTracker(opts) {
       partsOfSpeech = _.uniq(partsOfSpeech);
 
       // We only want records for words that are strictly one part of speech.
-      console.log(partsOfSpeech);
+      // console.log(partsOfSpeech);
       // var exclusivePOS = getExclusivePOSFromDict(partsOfSpeech);
       // if (exclusivePOS) {
       partsOfSpeech.forEach(markObserved);
