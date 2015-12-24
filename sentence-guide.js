@@ -103,12 +103,23 @@ function SentenceGuide(opts) {
 
       shouldSkip = true;
     }
+    else if (containsArticle(partsOfSpeech) &&
+      containsArticle(prevWordPartsOfSpeech)) {
+
+      shouldSkip = true;
+    }
+
     return shouldSkip;
   }
 
   function containsPrepositionOrConjunction(partsOfSpeech) {
     return partsOfSpeech.indexOf('preposition') !== -1 ||
       partsOfSpeech.indexOf('conjunction') !== -1;
+  }
+
+  function containsArticle(partsOfSpeech) {
+    return partsOfSpeech.indexOf('definite-article') !== -1 ||
+      partsOfSpeech.indexOf('indefinite-article') !== -1;
   }
 
   function getNextWordSpecifier() {
