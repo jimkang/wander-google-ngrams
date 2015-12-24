@@ -17,14 +17,14 @@ function POSTracker(opts) {
   var observedPOS = {};
 
   function notePOS(word, done) {
-    if (word == 'a') {
+    if (word.toLowerCase() == 'a') {
       // For some reason, Wordnik calls 'a' a noun.
       markObserved('indefinite-article');
       callNextTick(done, null, ['indefinite-article']);
       return;
     }
 
-    wordnok.getPartsOfSpeech(word, saveWordPOS);
+    wordnok.getPartsOfSpeech(word.toLowerCase(), saveWordPOS);
   
     function saveWordPOS(error, partsOfSpeech) {
       if (error) {
