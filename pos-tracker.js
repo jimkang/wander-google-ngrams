@@ -2,12 +2,6 @@ var callNextTick = require('call-next-tick');
 var createWordnok = require('wordnok').createWordnok;
 var _ = require('lodash');
 
-var verbsThatWordPOSSomehowMisses = [
-  'is',
-  'was',
-  'went'
-];
-
 function POSTracker(opts) {
   var wordnikAPIKey;
 
@@ -23,13 +17,7 @@ function POSTracker(opts) {
   var observedPOS = {};
 
   function notePOS(word, done) {
-    if (verbsThatWordPOSSomehowMisses.indexOf(word) !== -1) {
-      callNextTick(done, null, {'verbs': [word]});
-    }
-    else {
-      // wordpos.getPOS(word, saveWordPOS);
-      wordnok.getPartsOfSpeech(word, saveWordPOS);
-    }
+    wordnok.getPartsOfSpeech(word, saveWordPOS);
   
     function saveWordPOS(error, partsOfSpeech) {
       if (error) {

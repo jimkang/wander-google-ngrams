@@ -60,13 +60,9 @@ function SentenceGuide(opts) {
   }
 
   var stageIndex = 0;
-
   var firstSpecifier = true;
-
-  var pushedSubject = false;
-  var pushedVerb = false;
-  var pushedObject = false;
   var pushCount = 0;
+  var prevWordPartsOfSpeech;
 
   function noteWordWasPushed(word, done) {
     pushCount += 1;
@@ -79,6 +75,12 @@ function SentenceGuide(opts) {
       else {
         var stage = stages[stageIndex];
         console.log('partsOfSpeech', partsOfSpeech, 'for', word);
+        if (shouldSkipWord(partsOfSpeech)) {
+          console.log('Skipping.');
+          done();
+          return;
+        }
+
         console.log('stage.needToProceed', stage.needToProceed);
         console.log(
           '_.intersection', _.intersection(stage.needToProceed, partsOfSpeech)
@@ -87,9 +89,26 @@ function SentenceGuide(opts) {
           stageIndex += 1;
           console.log('New stage:', stages[stageIndex].name);
         }
+
+        prevWordPartsOfSpeech = partsOfSpeech;
         done();
       }
     }
+  }
+
+  function shouldSkipWord(partsOfSpeech) {
+    var shouldSkip = false;
+    if (containsPrepositionOrConjunction(partsOfSpeech) &&
+      containsPrepositionOrConjunction(prevWordPartsOfSpeech)) {
+
+      shouldSkip = true;
+    }
+    return shouldSkip;
+  }
+
+  function containsPrepositionOrConjunction(partsOfSpeech) {
+    return partsOfSpeech.indexOf('preposition') !== -1 ||
+      partsOfSpeech.indexOf('conjunction') !== -1;
   }
 
   function getNextWordSpecifier() {
@@ -105,6 +124,10 @@ function SentenceGuide(opts) {
     return stages[stageIndex].lookFor;
   }
 
+  function getDesiredPartsOfSpeech() {
+    return stages[stageIndex].needToProceed;
+  }
+
   function reset() {
     stageIndex = 0;
   }
@@ -112,6 +135,7 @@ function SentenceGuide(opts) {
   return {
     noteWordWasPushed: noteWordWasPushed,
     getNextWordSpecifier: getNextWordSpecifier,
+    getDesiredPartsOfSpeech: getDesiredPartsOfSpeech,
     reset: reset
   };
 }
