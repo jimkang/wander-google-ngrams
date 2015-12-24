@@ -9,7 +9,7 @@ var forwardStages = [
   },
   {
     name: 'pushedSubject',
-    needToProceed: ['verb'],
+    needToProceed: ['verb', 'verb-intransitive', 'auxiliary-verb'],
     lookFor: '*_VERB'
   },
   {
@@ -30,7 +30,7 @@ var backwardStages = [
   },
   {
     name: 'pushedObject',
-    needToProceed: ['verb'],
+    needToProceed: ['verb', 'verb-intransitive', 'auxiliary-verb'],
     lookFor: '*_VERB'
   },
   {
@@ -78,6 +78,11 @@ function SentenceGuide(opts) {
       }
       else {
         var stage = stages[stageIndex];
+        console.log('partsOfSpeech', partsOfSpeech, 'for', word);
+        console.log('stage.needToProceed', stage.needToProceed);
+        console.log(
+          '_.intersection', _.intersection(stage.needToProceed, partsOfSpeech)
+        );
         if (_.intersection(stage.needToProceed, partsOfSpeech).length > 0) {
           stageIndex += 1;
           console.log('New stage:', stages[stageIndex].name);

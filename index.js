@@ -123,7 +123,6 @@ function WanderGoogleNgrams(createOpts) {
         else if (specifier !== '*' && mostRecentWords) {
           console.log('Going less specific.');
           // Try going less specific.
-          sentenceGuide.reset();
           callNextTick(
             getNgrams,
             {
