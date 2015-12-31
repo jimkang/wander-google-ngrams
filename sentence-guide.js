@@ -1,21 +1,26 @@
 var POSTracker = require('./pos-tracker');
 var _ = require('lodash');
 
+var nounFamily = ['noun', 'pronoun', 'noun-plural'];
+var verbFamily = ['verb', 'verb-intransitive', 'auxiliary-verb'];
+var objectPOS = nounFamily.concat(['adjective']);
+
 var forwardStages = [
   {
     name: 'start',
-    needToProceed: ['noun', 'pronoun'],
+    needToProceed: nounFamily,
     lookFor: '*_NOUN'
   },
   {
     name: 'pushedSubject',
-    needToProceed: ['verb', 'verb-intransitive', 'auxiliary-verb'],
+    needToProceed: verbFamily,
     lookFor: '*_VERB'
   },
   {
     name: 'pushedVerb',
-    needToProceed: ['noun', 'pronoun', 'adjective'],
-    lookFor: '*_NOUN'
+    needToProceed: objectPOS,
+    lookFor: '*_NOUN',
+    posShouldBeUnambiguous: true
   },
   {
     name: 'done' // 'pushedObject'
@@ -25,17 +30,18 @@ var forwardStages = [
 var backwardStages = [
   {
     name: 'start',
-    needToProceed: ['noun', 'pronoun', 'adjective'],
-    lookFor: '*_NOUN'
+    needToProceed: objectPOS,
+    lookFor: '*_NOUN',
+    posShouldBeUnambiguous: true
   },
   {
     name: 'pushedObject',
-    needToProceed: ['verb', 'verb-intransitive', 'auxiliary-verb'],
+    needToProceed: verbFamily,
     lookFor: '*_VERB'
   },
   {
     name: 'pushedVerb',
-    needToProceed: ['noun', 'pronoun'],
+    needToProceed: nounFamily,
     lookFor: '*_NOUN'
   },
   {
@@ -75,17 +81,29 @@ function SentenceGuide(opts) {
       else {
         var stage = stages[stageIndex];
         console.log('partsOfSpeech', partsOfSpeech, 'for', word);
-        if (shouldSkipWord(partsOfSpeech)) {
+        if (pushCount > 1 && shouldSkipWord(partsOfSpeech)) {
           console.log('Skipping.');
           done();
           return;
         }
 
         console.log('stage.needToProceed', stage.needToProceed);
-        console.log(
-          '_.intersection', _.intersection(stage.needToProceed, partsOfSpeech)
-        );
-        if (_.intersection(stage.needToProceed, partsOfSpeech).length > 0) {
+
+        if (stage.posShouldBeUnambiguous &&
+          !partsOfSpeech.every(_.curry(posIsInNeededPOS)(stage))) {
+
+          console.log(
+            'Skipping: ' + word + ' has parts of speech that are not in ',
+            stage.needToProceed
+          );
+          done();
+          return;
+        }
+
+        var commonPOS = _.intersection(stage.needToProceed, partsOfSpeech);
+        console.log('_.intersection', commonPOS);
+
+        if (commonPOS.length > 0) {
           stageIndex += 1;
           console.log('New stage:', stages[stageIndex].name);
         }
@@ -93,6 +111,10 @@ function SentenceGuide(opts) {
         prevWordPartsOfSpeech = partsOfSpeech;
         done();
       }
+    }
+
+    function posIsInNeededPOS(stage, pos) {
+      return stage.needToProceed.indexOf(pos) !== -1;
     }
   }
 
