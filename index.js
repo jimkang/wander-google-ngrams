@@ -91,17 +91,7 @@ function WanderGoogleNgrams(createOpts) {
     };
 
     function evaluateResult(error, ngramsGroups) {
-      if (error || !ngramsGroups || ngramsGroups.length < 1) {
-        if (!nextGroup) {
-          stream.emit(error);
-        }
-        else {
-          // Most likely, if we have a nextGroup, we just hit too many 
-          // redirects because there's no further ngrams. End the stream.
-          decideNextStep();
-        }
-      }
-      else {
+      if (!error && ngramsGroups && ngramsGroups.length > 0) {
         var newWord = null;
         var cleanedWord;
         nextGroup = pickNextGroup(ngramsGroups);
@@ -113,6 +103,19 @@ function WanderGoogleNgrams(createOpts) {
         }
 
         decideNextStep();
+      }
+      else if (nextGroup) {
+        // Most likely, if we have a nextGroup and have an error, we hit too 
+        // many redirects because there's no further ngrams. Pass things on to
+        // decideNextStep rather than erroring and quitting.
+        decideNextStep();
+      }
+      else {
+        if (error) {
+          stream.emit('error', error);
+        }
+        // End the stream.
+        stream.push(null);
       }
 
       function decideNextStep() {
@@ -133,6 +136,7 @@ function WanderGoogleNgrams(createOpts) {
         }
         else if (tryReducingNgramSizeAtDeadEnds && mostRecentWords &&
           consecutiveDeadEndRetries < maxConsecutiveDeadEndRetries) {
+
           consecutiveDeadEndRetries += 1;
           console.log('consecutiveDeadEndRetries', consecutiveDeadEndRetries);
           mostRecentWords = removeOldestFromGroup(mostRecentWords);
