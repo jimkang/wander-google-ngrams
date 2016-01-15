@@ -61,8 +61,15 @@ function SentenceGuide(opts) {
   }
 
   var stages = forwardStages;
+  if (opts && opts.forwardStages) {
+    stages = opts.forwardStages;
+  }
+
   if (direction === 'backward') {
     stages = backwardStages;
+    if (opts && opts.backwardStages) {
+      stages = opts.backwardStages;
+    }
   }
 
   var stageIndex = 0;

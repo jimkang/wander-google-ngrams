@@ -23,7 +23,18 @@ var opts = {
   repeatLimit: 1,
   tryReducingNgramSizeAtDeadEnds: true,
   shootForASentence: true,
-  maxWordCount: 20
+  maxWordCount: 20,
+  forwardStages: [
+    {
+      name: 'pushedVerb',
+      needToProceed: ['noun', 'pronoun', 'noun-plural', 'adjective'],
+      lookFor: '*_NOUN',
+      posShouldBeUnambiguous: true
+    },
+    {
+      name: 'done'
+    }
+  ]
 };
 var stream = createWanderStream(opts);
 

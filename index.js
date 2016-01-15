@@ -46,7 +46,9 @@ function WanderGoogleNgrams(createOpts) {
     if (shootForASentence) {
       sentenceGuide = SentenceGuide({
         wordnikAPIKey: createOpts.wordnikAPIKey,
-        direction: opts.direction
+        direction: opts.direction,
+        forwardStages: opts.forwardStages,
+        backwardStages: opts.backwardStages
       });
     }
 
