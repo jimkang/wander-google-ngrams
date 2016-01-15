@@ -120,15 +120,18 @@ function SentenceGuide(opts) {
 
   function shouldSkipWord(partsOfSpeech) {
     var shouldSkip = false;
-    if (containsPrepositionOrConjunction(partsOfSpeech) &&
-      containsPrepositionOrConjunction(prevWordPartsOfSpeech)) {
 
-      shouldSkip = true;
-    }
-    else if (containsArticle(partsOfSpeech) &&
-      containsArticle(prevWordPartsOfSpeech)) {
+    if (prevWordPartsOfSpeech) {
+      if (containsPrepositionOrConjunction(partsOfSpeech) &&
+        containsPrepositionOrConjunction(prevWordPartsOfSpeech)) {
 
-      shouldSkip = true;
+        shouldSkip = true;
+      }
+      else if (containsArticle(partsOfSpeech) &&
+        containsArticle(prevWordPartsOfSpeech)) {
+
+        shouldSkip = true;
+      }
     }
 
     return shouldSkip;
