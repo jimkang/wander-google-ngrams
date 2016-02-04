@@ -1,5 +1,6 @@
 var createWordnok = require('wordnok').createWordnok;
 var _ = require('lodash');
+var callNextTick = require('call-next-tick');
 
 function POSTracker(opts) {
   var wordnikAPIKey;
