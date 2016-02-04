@@ -126,7 +126,7 @@ function WanderGoogleNgrams(createOpts) {
           pushWordToStream(cleanedWord);
         }
         else if (specifier !== '*' && mostRecentWords) {
-          console.log('Going less specific.');
+          // console.log('Going less specific.');
           // Try going less specific.
           callNextTick(
             getNgrams,
@@ -140,7 +140,7 @@ function WanderGoogleNgrams(createOpts) {
           consecutiveDeadEndRetries < maxConsecutiveDeadEndRetries) {
 
           consecutiveDeadEndRetries += 1;
-          console.log('consecutiveDeadEndRetries', consecutiveDeadEndRetries);
+          // console.log('consecutiveDeadEndRetries', consecutiveDeadEndRetries);
           mostRecentWords = removeOldestFromGroup(mostRecentWords);
           callNextTick(
             getNgrams,

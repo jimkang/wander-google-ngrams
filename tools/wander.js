@@ -29,7 +29,7 @@ var opts = {
       name: 'pushedVerb',
       needToProceed: ['noun', 'pronoun', 'noun-plural', 'adjective'],
       lookFor: '*_NOUN',
-      posShouldBeUnambiguous: true
+      // posShouldBeUnambiguous: true
     },
     {
       name: 'done'

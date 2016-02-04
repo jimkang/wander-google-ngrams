@@ -1,4 +1,3 @@
-var callNextTick = require('call-next-tick');
 var createWordnok = require('wordnok').createWordnok;
 var _ = require('lodash');
 

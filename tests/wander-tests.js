@@ -163,39 +163,75 @@ var testCases = [
   //     'indeed'
   //   ]
   // }
-    {
-      opts: {
-        word: 'jump',
-        direction: 'forward',
-        repeatLimit: 1,
-        tryReducingNgramSizeAtDeadEnds: true,
-        shootForASentence: true,
-        forwardStages: [
-          {
-            name: 'pushedVerb',
-            needToProceed: ['noun', 'pronoun', 'noun-plural', 'adjective'],
-            lookFor: '*_NOUN',
-            posShouldBeUnambiguous: true
-          },
-          {
-            name: 'done'
-          }
-        ]
-      },
-      ngramResults: [
-        'in',
-        'the',
-        'fire',
-        'oh',
-        'yeah',
-      ],
-      expected: [
-        'jump',
-        'in',
-        'the',
-        'fire'
+  {
+    opts: {
+      word: 'jump',
+      direction: 'forward',
+      repeatLimit: 1,
+      tryReducingNgramSizeAtDeadEnds: true,
+      shootForASentence: true,
+      forwardStages: [
+        {
+          name: 'pushedVerb',
+          needToProceed: ['noun', 'pronoun', 'noun-plural', 'adjective'],
+          lookFor: '*_NOUN',
+          posShouldBeUnambiguous: true
+        },
+        {
+          name: 'done'
+        }
       ]
     },
+    ngramResults: [
+      'in',
+      'the',
+      'fire',
+      'oh',
+      'yeah',
+    ],
+    expected: [
+      'jump',
+      'in',
+      'the',
+      'fire'
+    ]
+  },
+  {
+    opts: {
+      word: 'jump',
+      direction: 'forward',
+      repeatLimit: 1,
+      tryReducingNgramSizeAtDeadEnds: true,
+      shootForASentence: true,
+      forwardStages: [
+        {
+          name: 'pushedVerb',
+          needToProceed: ['noun', 'pronoun', 'noun-plural', 'adjective'],
+          disallowedExits: ['fire', 'oh'],
+          lookFor: '*_NOUN',
+          posShouldBeUnambiguous: true
+        },
+        {
+          name: 'done'
+        }
+      ]
+    },
+    ngramResults: [
+      'in',
+      'the',
+      'fire',
+      'oh',
+      'yeah',
+    ],
+    expected: [
+      'jump',
+      'in',
+      'the',
+      'fire',
+      'oh',
+      'yeah'
+    ]
+  }
 ];
 
 testCases.forEach(runTest);

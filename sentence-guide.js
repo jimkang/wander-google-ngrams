@@ -79,6 +79,8 @@ function SentenceGuide(opts) {
 
   function noteWordWasPushed(word, done) {
     pushCount += 1;
+    var stage = stages[stageIndex];
+
     posTracker.notePOS(word, updateState);
 
     function updateState(error, partsOfSpeech) {
@@ -86,33 +88,37 @@ function SentenceGuide(opts) {
         done(error);
       }
       else {
-        var stage = stages[stageIndex];
-        console.log('partsOfSpeech', partsOfSpeech, 'for', word);
+        // console.log('partsOfSpeech', partsOfSpeech, 'for', word);
+
         if (pushCount > 1 && shouldSkipWord(partsOfSpeech)) {
-          console.log('Skipping.');
+          // console.log('Skipping.');
           done();
           return;
         }
 
-        console.log('stage.needToProceed', stage.needToProceed);
+        // console.log('stage.needToProceed', stage.needToProceed);
 
         if (stage.posShouldBeUnambiguous &&
           !partsOfSpeech.every(_.curry(posIsInNeededPOS)(stage))) {
 
-          console.log(
-            'Skipping: ' + word + ' has parts of speech that are not in ',
-            stage.needToProceed
-          );
+          // console.log(
+          //   'Skipping: ' + word + ' has parts of speech that are not in ',
+          //   stage.needToProceed
+          // );
           done();
           return;
         }
 
-        var commonPOS = _.intersection(stage.needToProceed, partsOfSpeech);
-        console.log('_.intersection', commonPOS);
+        if (!stage.disallowedExits ||
+          stage.disallowedExits.indexOf(word) === -1) {
 
-        if (commonPOS.length > 0) {
-          stageIndex += 1;
-          console.log('New stage:', stages[stageIndex].name);
+          var commonPOS = _.intersection(stage.needToProceed, partsOfSpeech);
+          // console.log('_.intersection', commonPOS);
+
+          if (commonPOS.length > 0) {
+            stageIndex += 1;
+            // console.log('New stage:', stages[stageIndex].name);
+          }
         }
 
         prevWordPartsOfSpeech = partsOfSpeech;
