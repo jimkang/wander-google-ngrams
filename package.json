@@ -1,6 +1,6 @@
 {
   "name": "wander-google-ngrams",
-  "version": "2.4.1",
+  "version": "2.5.1",
   "description": "Given a word, will use it to wander on a path through the Google Ngram Viewer.",
   "main": "index.js",
   "scripts": {

@@ -231,6 +231,40 @@ var testCases = [
       'oh',
       'yeah'
     ]
+  },
+  {
+    opts: {
+      word: 'jump',
+      direction: 'forward',
+      repeatLimit: 1,
+      tryReducingNgramSizeAtDeadEnds: true,
+      shootForASentence: true,
+      forwardStages: [
+        {
+          name: 'pushedVerb',
+          needToProceed: ['noun', 'pronoun', 'noun-plural', 'adjective'],
+          disallowCommonBadExits: true,
+          lookFor: '*_NOUN',
+          posShouldBeUnambiguous: true
+        },
+        {
+          name: 'done'
+        }
+      ]
+    },
+    ngramResults: [
+      'in',
+      'its',
+      'fire',
+      'oh',
+      'yeah',
+    ],
+    expected: [
+      'jump',
+      'in',
+      'its',
+      'fire'
+    ]
   }
 ];
 

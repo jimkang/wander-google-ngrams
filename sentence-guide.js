@@ -4,6 +4,7 @@ var _ = require('lodash');
 var nounFamily = ['noun', 'pronoun', 'noun-plural'];
 var verbFamily = ['verb', 'verb-intransitive', 'auxiliary-verb'];
 var objectPOS = nounFamily.concat(['adjective']);
+var commonBadExits = require('./common-bad-exits');
 
 var forwardStages = [
   {
@@ -109,8 +110,8 @@ function SentenceGuide(opts) {
           return;
         }
 
-        if (!stage.disallowedExits ||
-          stage.disallowedExits.indexOf(word) === -1) {
+        if ((!stage.disallowedExits || stage.disallowedExits.indexOf(word) === -1) &&
+          (!stage.disallowCommonBadExits || commonBadExits.indexOf(word) === -1)) {
 
           var commonPOS = _.intersection(stage.needToProceed, partsOfSpeech);
           // console.log('_.intersection', commonPOS);
