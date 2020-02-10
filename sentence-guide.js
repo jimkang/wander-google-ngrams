@@ -1,5 +1,6 @@
 var POSTracker = require('./pos-tracker');
-var _ = require('lodash');
+var curry = require('lodash.curry');
+var intersection = require('lodash.intersection');
 
 var nounFamily = ['noun', 'pronoun', 'noun-plural'];
 var verbFamily = ['verb', 'verb-intransitive', 'auxiliary-verb'];
@@ -87,8 +88,7 @@ function SentenceGuide(opts) {
     function updateState(error, partsOfSpeech) {
       if (error) {
         done(error);
-      }
-      else {
+      } else {
         // console.log('partsOfSpeech', partsOfSpeech, 'for', word);
 
         if (pushCount > 1 && shouldSkipWord(partsOfSpeech)) {
@@ -99,9 +99,10 @@ function SentenceGuide(opts) {
 
         // console.log('stage.needToProceed', stage.needToProceed);
 
-        if (stage.posShouldBeUnambiguous &&
-          !partsOfSpeech.every(_.curry(posIsInNeededPOS)(stage))) {
-
+        if (
+          stage.posShouldBeUnambiguous &&
+          !partsOfSpeech.every(curry(posIsInNeededPOS)(stage))
+        ) {
           // console.log(
           //   'Skipping: ' + word + ' has parts of speech that are not in ',
           //   stage.needToProceed
@@ -110,10 +111,12 @@ function SentenceGuide(opts) {
           return;
         }
 
-        if ((!stage.disallowedExits || stage.disallowedExits.indexOf(word) === -1) &&
-          (!stage.disallowCommonBadExits || commonBadExits.indexOf(word) === -1)) {
-
-          var commonPOS = _.intersection(stage.needToProceed, partsOfSpeech);
+        if (
+          (!stage.disallowedExits ||
+            stage.disallowedExits.indexOf(word) === -1) &&
+          (!stage.disallowCommonBadExits || commonBadExits.indexOf(word) === -1)
+        ) {
+          var commonPOS = intersection(stage.needToProceed, partsOfSpeech);
           // console.log('_.intersection', commonPOS);
 
           if (commonPOS.length > 0) {
@@ -136,14 +139,15 @@ function SentenceGuide(opts) {
     var shouldSkip = false;
 
     if (prevWordPartsOfSpeech) {
-      if (containsPrepositionOrConjunction(partsOfSpeech) &&
-        containsPrepositionOrConjunction(prevWordPartsOfSpeech)) {
-
+      if (
+        containsPrepositionOrConjunction(partsOfSpeech) &&
+        containsPrepositionOrConjunction(prevWordPartsOfSpeech)
+      ) {
         shouldSkip = true;
-      }
-      else if (containsArticle(partsOfSpeech) &&
-        containsArticle(prevWordPartsOfSpeech)) {
-
+      } else if (
+        containsArticle(partsOfSpeech) &&
+        containsArticle(prevWordPartsOfSpeech)
+      ) {
         shouldSkip = true;
       }
     }
@@ -152,13 +156,17 @@ function SentenceGuide(opts) {
   }
 
   function containsPrepositionOrConjunction(partsOfSpeech) {
-    return partsOfSpeech.indexOf('preposition') !== -1 ||
-      partsOfSpeech.indexOf('conjunction') !== -1;
+    return (
+      partsOfSpeech.indexOf('preposition') !== -1 ||
+      partsOfSpeech.indexOf('conjunction') !== -1
+    );
   }
 
   function containsArticle(partsOfSpeech) {
-    return partsOfSpeech.indexOf('definite-article') !== -1 ||
-      partsOfSpeech.indexOf('indefinite-article') !== -1;
+    return (
+      partsOfSpeech.indexOf('definite-article') !== -1 ||
+      partsOfSpeech.indexOf('indefinite-article') !== -1
+    );
   }
 
   function getNextWordSpecifier() {
@@ -188,10 +196,6 @@ function SentenceGuide(opts) {
     getDesiredPartsOfSpeech: getDesiredPartsOfSpeech,
     reset: reset
   };
-}
-
-function containsPOS(partsOfSpeech, pos) {
-  return partsOfSpeech.indexOf(pos) !== -1;
 }
 
 module.exports = SentenceGuide;

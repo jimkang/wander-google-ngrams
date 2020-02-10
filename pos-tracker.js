@@ -1,5 +1,5 @@
 var createWordnok = require('wordnok').createWordnok;
-var _ = require('lodash');
+var uniq = require('lodash.uniq');
 var callNextTick = require('call-next-tick');
 
 function POSTracker(opts) {
@@ -25,7 +25,7 @@ function POSTracker(opts) {
     }
 
     wordnok.getPartsOfSpeech(word.toLowerCase(), saveWordPOS);
-  
+
     function saveWordPOS(error, partsOfSpeech) {
       if (error) {
         done(error);
@@ -33,7 +33,7 @@ function POSTracker(opts) {
       }
       // posForWords[word] = partsOfSpeech;
       // console.log(word, 'pos', partsOfSpeech);
-      partsOfSpeech = _.uniq(partsOfSpeech);
+      partsOfSpeech = uniq(partsOfSpeech);
 
       // We only want records for words that are strictly one part of speech.
       // console.log(partsOfSpeech);

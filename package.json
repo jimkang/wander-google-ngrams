@@ -22,10 +22,13 @@
   },
   "dependencies": {
     "call-next-tick": "^1.1.2",
-    "lodash": "^3.10.1",
-    "ngram-getter": "^1.0.6",
+    "lodash.curry": "^4.1.1",
+    "lodash.intersection": "^4.4.0",
+    "lodash.pluck": "^3.1.2",
+    "lodash.uniq": "^4.5.0",
+    "ngram-getter": "^1.0.8",
     "probable": "^1.7.0",
     "queue-async": "^1.0.7",
-    "wordnok": "jimkang/wordnok#no-cache"
+    "wordnok": "^3.4.1"
   }
 }

@@ -1,11 +1,10 @@
 var defaultGetNgrams = require('ngram-getter');
 var probable = require('probable');
-var _ = require('lodash');
+var pluck = require('lodash.pluck');
 var callNextTick = require('call-next-tick');
 var Readable = require('stream').Readable;
 var WordCounter = require('./word-counter');
 var SentenceGuide = require('./sentence-guide');
-var queue = require('queue-async');
 
 function WanderGoogleNgrams(createOpts) {
   var getNgrams = defaultGetNgrams;
@@ -20,7 +19,6 @@ function WanderGoogleNgrams(createOpts) {
     var pickNextGroup;
     var repeatLimit;
     var tryReducingNgramSizeAtDeadEnds;
-    var characterLimit;
     var shootForASentence;
     var maxWordCount;
 
@@ -38,7 +36,6 @@ function WanderGoogleNgrams(createOpts) {
       pickNextGroup = opts.pickNextGroup;
       repeatLimit = opts.repeatLimit;
       tryReducingNgramSizeAtDeadEnds = opts.tryReducingNgramSizeAtDeadEnds;
-      characterLimit = opts.characterLimit;
       shootForASentence = opts.shootForASentence;
       maxWordCount = opts.maxWordCount;
     }
@@ -77,7 +74,7 @@ function WanderGoogleNgrams(createOpts) {
         pushWordToStream(word);
       }
       else {
-        var phrases = getPhrasesForNgramSearch(_.pluck(nextGroup, 'word'));
+        var phrases = getPhrasesForNgramSearch(pluck(nextGroup, 'word'));
         if (phrases) {
           getNgrams(
             {
@@ -99,7 +96,7 @@ function WanderGoogleNgrams(createOpts) {
         nextGroup = pickNextGroup(ngramsGroups);
 
         if (nextGroup) {
-          mostRecentWords = _.pluck(nextGroup, 'word');
+          mostRecentWords = pluck(nextGroup, 'word');
           newWord = getNewest(mostRecentWords);
           cleanedWord = replaceHTMLEntities(newWord);
         }
